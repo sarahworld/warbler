@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField
 from wtforms.validators import DataRequired, Email, Length
+import email_validator
 
 
 class MessageForm(FlaskForm):
@@ -16,6 +17,9 @@ class UserAddForm(FlaskForm):
     email = StringField('E-mail', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[Length(min=6)])
     image_url = StringField('(Optional) Image URL')
+    location = StringField('Location')
+    bio = StringField('Bio')
+    header_image = StringField('Background Image URL at top')
 
 
 class LoginForm(FlaskForm):

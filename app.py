@@ -3,7 +3,9 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from jinja2 import Markup
+from flask_sqlalchemy import sqlalchemy
+from sqlalchemy import exc
+from markupsafe import Markup
 
 from forms import UserAddForm, LoginForm, MessageForm
 from models import db, connect_db, User, Message
@@ -19,7 +21,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
@@ -113,8 +115,12 @@ def login():
 @app.route('/logout')
 def logout():
     """Handle logout of user."""
+    form = LoginForm()
 
-    # IMPLEMENT THIS
+    # IMPLEMENT THIS-COMPLETED
+    session.pop(CURR_USER_KEY)
+    flash("LOGGED OUT SUCCESSFULLY")
+    return render_template('users/login.html', form=form)
 
 
 ##############################################################################
@@ -213,6 +219,22 @@ def profile():
     """Update profile for current user."""
 
     # IMPLEMENT THIS
+    form = UserAddForm()
+
+    if form.validate_on_submit():
+        location = form.location.data
+        bio = form.bio.data
+        header_image = form.header_image.data
+
+        
+
+
+
+
+
+
+
+
 
 
 @app.route('/users/delete', methods=["POST"])
