@@ -7,7 +7,7 @@ from flask_sqlalchemy import sqlalchemy
 from sqlalchemy import exc
 from markupsafe import Markup
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
@@ -217,26 +217,38 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
-@app.route('/users/<int:user_id>', methods=["GET", "POST"])
-def profile(user_id):
+@app.route('/users/profile', methods=["GET", "POST"])
+def edit_profile():
     """Update profile for current user."""
-
+    
     # IMPLEMENT THIS
-    user = User.query.get_or_404(user_id);
-
-    return render_template("users/detail.html", user=user)
+    
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    user = g.user;
+    form = UserEditForm(obj=user)
     
 
+    if form.validate_on_submit():
+        if User.authenticate(user.username, form.password.data):
+            user.username = form.username.data
+            user.email = form.email.data
+            user.image_url = form.image_url.data
+            user.header_image_url = form.header_image_url.data
+            user.bio = form.bio.data
+        
+            db.session.add(user)
+            db.session.commit()
+            return redirect(f"/users/{user.id}")
 
-
-
-
-
-
-
-
-
-
+        
+        flash("Error Password Incorrect!, Try again!", 'danger')
+            
+    
+    return render_template("users/edit.html", user_id=user.id, form=form)
+    
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
