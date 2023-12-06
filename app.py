@@ -77,6 +77,9 @@ def signup():
                 password=form.password.data,
                 email=form.email.data,
                 image_url=form.image_url.data or User.image_url.default.arg,
+                location = form.location.data,
+                bio = form.bio.data,
+                header_image_url = form.header_image_url.data,
             )
             db.session.commit()
 
@@ -214,19 +217,17 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
-@app.route('/users/profile', methods=["GET", "POST"])
-def profile():
+@app.route('/users/<int:user_id>', methods=["GET", "POST"])
+def profile(user_id):
     """Update profile for current user."""
 
     # IMPLEMENT THIS
-    form = UserAddForm()
+    user = User.query.get_or_404(user_id);
 
-    if form.validate_on_submit():
-        location = form.location.data
-        bio = form.bio.data
-        header_image = form.header_image.data
+    return render_template("users/detail.html", user=user)
+    
 
-        
+
 
 
 
