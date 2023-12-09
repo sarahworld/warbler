@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Liked Warbles</h2>
+<ul>
+    {% for warble in warbles %}
+    <li>
+        <p>{{warble.text}}</p>
+    </li>
+
+    {% endfor %}
+</ul>
+
+
+{% endblock %}
