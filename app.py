@@ -1,14 +1,15 @@
 import os
 
-from flask import Flask, render_template, request, flash, redirect, session, g
+from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
+
 from sqlalchemy.exc import IntegrityError
 from flask_sqlalchemy import sqlalchemy
-from sqlalchemy import exc
+# from sqlalchemy import exc
 from markupsafe import Markup
 
 from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Follows, Likes
 
 CURR_USER_KEY = "curr_user"
 
@@ -314,6 +315,42 @@ def messages_destroy(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
+@app.route('/messages/<int:message_id>/like', methods=["POST"])
+def add_like(message_id):
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    liked_message = Message.query.get_or_404(message_id)
+
+    # User cannot like its own message
+    if liked_message.user.id == g.user.id:
+        return abort(403)
+    
+    user_likes = g.user.likes
+
+    if liked_message in user_likes:
+        g.user.likes = [like for like in user_likes if like != liked_message]
+    else:
+        g.user.like.append(liked_message)
+
+    db.session.commit()
+
+    return redirect("/")
+
+@app.route('/users/<int:user_id>/likes')
+def show_user_likes(user_id):
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    likes = Likes.query.all();
+    warbles = []
+    for like in likes:
+        warbles.append(Message.query.get(like.message_id))
+    
+    return render_template("users/liked_warbles.html", warbles=warbles)
+
 
 ##############################################################################
 # Homepage and error pages
@@ -326,15 +363,19 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
+    # TODO:
     if g.user:
         messages = (Message
                     .query
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+        likes = Likes.query.all();
+        liked_messages = []
 
-        return render_template('home.html', messages=messages)
+        for like in likes:
+            liked_messages.append(like.message_id)
+        return render_template('home.html', messages=messages, likes=liked_messages )
 
     else:
         return render_template('home-anon.html')
